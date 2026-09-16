@@ -1,0 +1,6 @@
+@DigitalSignatureSystem_HostAddress = http://localhost:5178
+
+GET {{DigitalSignatureSystem_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

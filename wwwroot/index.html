@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Digital Signature System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fa;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #2563eb;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 16px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .description {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            resize: vertical;
+            font-family: Consolas, monospace;
+            margin-bottom: 15px;
+        }
+
+        button {
+            border: none;
+            border-radius: 7px;
+            padding: 12px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 10px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 8px;
+        }
+
+        .result.success {
+            display: block;
+            background: #dcfce7;
+            border: 1px solid #22c55e;
+            color: #166534;
+        }
+
+        .result.error {
+            display: block;
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .result.invalid {
+            display: block;
+            background: #fff7ed;
+            border: 1px solid #f97316;
+            color: #9a3412;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+        }
+
+        .result-item {
+            margin: 8px 0;
+            word-break: break-all;
+        }
+
+        .result-item strong {
+            display: inline-block;
+            min-width: 110px;
+        }
+
+        .signature-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .key-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .flow-step {
+            flex: 1;
+            min-width: 150px;
+            padding: 18px;
+            background: #eff6ff;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+        }
+
+        .arrow {
+            font-size: 25px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #6b7280;
+            margin-top: 20px;
+        }
+
+        .small-note {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: 95%;
+            }
+
+            .flow {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Digital Signature System</h1>
+    <p>RSA Digital Signature &amp; SHA-256 Data Integrity Verification</p>
+</header>
+
+<div class="container">
+
+    <!-- SYSTEM OVERVIEW -->
+    <div class="card">
+        <h2>System Overview</h2>
+
+        <p class="description">
+            This system demonstrates how digital signatures can be used
+            to authenticate data and detect unauthorized modifications.
+        </p>
+
+        <div class="flow">
+
+            <div class="flow-step">
+                <strong>1. Document</strong>
+                <br>
+                Original File
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <strong>2. SHA-256</strong>
+                <br>
+                Hash Generation
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <strong>3. RSA</strong>
+                <br>
+                Digital Signature
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="flow-step">
+                <strong>4. Verify</strong>
+                <br>
+                VALID / INVALID
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- 1. GENERATE KEY -->
+    <div class="card">
+
+        <h2>1. Generate RSA Key Pair</h2>
+
+        <p class="description">
+            Generate an RSA public key and private key for digital signing.
+        </p>
+
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="generateKey()">
+            Generate RSA Key Pair
+        </button>
+
+        <div id="keyResult" class="result"></div>
+
+    </div>
+
+
+    <!-- 2. SIGN FILE -->
+    <div class="card">
+
+        <h2>2. Sign Document</h2>
+
+        <p class="description">
+            Select a document and create a digital signature using
+            the RSA private key.
+        </p>
+
+        <label for="signFile">
+            Select document:
+        </label>
+
+        <input
+            type="file"
+            id="signFile">
+
+        <button
+            type="button"
+            class="btn-success"
+            onclick="signFile()">
+            Sign File
+        </button>
+
+        <div id="signResult" class="result"></div>
+
+    </div>
+
+
+    <!-- 3. VERIFY FILE -->
+    <div class="card">
+
+        <h2>3. Verify Digital Signature</h2>
+
+        <p class="description">
+            Verify whether the selected document is authentic
+            and has not been modified.
+        </p>
+
+        <label for="verifyFile">
+            Select document to verify:
+        </label>
+
+        <input
+            type="file"
+            id="verifyFile">
+
+        <label for="signature">
+            Digital Signature:
+        </label>
+
+        <textarea
+            id="signature"
+            placeholder="Paste the digital signature here..."></textarea>
+
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="verifyFile()">
+            Verify Signature
+        </button>
+
+        <div id="verifyResult" class="result"></div>
+
+    </div>
+
+
+    <!-- 4. HASH -->
+    <div class="card">
+
+        <h2>4. SHA-256 Hash</h2>
+
+        <p class="description">
+            Calculate the SHA-256 hash of a text message.
+        </p>
+
+        <label for="hashData">
+            Data:
+        </label>
+
+        <textarea
+            id="hashData"
+            placeholder="Enter data to calculate SHA-256 hash...">Hello Digital Signature</textarea>
+
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="calculateHash()">
+            Calculate SHA-256
+        </button>
+
+        <div id="hashResult" class="result"></div>
+
+    </div>
+
+
+    <!-- 5. SIGN TEXT -->
+    <div class="card">
+
+        <h2>5. Sign Text Data</h2>
+
+        <p class="description">
+            Sign a text message using the RSA private key.
+        </p>
+
+        <textarea
+            id="textToSign"
+            placeholder="Enter text to sign...">Hello Digital Signature</textarea>
+
+        <button
+            type="button"
+            class="btn-success"
+            onclick="signText()">
+            Sign Text
+        </button>
+
+        <div id="textSignResult" class="result"></div>
+
+    </div>
+
+
+    <!-- 6. VERIFY TEXT -->
+    <div class="card">
+
+        <h2>6. Verify Text Signature</h2>
+
+        <p class="description">
+            Verify a digital signature against the original text.
+        </p>
+
+        <label for="verifyText">
+            Data:
+        </label>
+
+        <textarea
+            id="verifyText"
+            placeholder="Enter original data...">Hello Digital Signature</textarea>
+
+        <label for="textSignature">
+            Digital Signature:
+        </label>
+
+        <textarea
+            id="textSignature"
+            placeholder="Paste signature here..."></textarea>
+
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="verifyText()">
+            Verify Text
+        </button>
+
+        <div id="textVerifyResult" class="result"></div>
+
+    </div>
+
+</div>
+
+
+<footer>
+    <p>
+        Digital Signature System |
+        RSA + SHA-256 |
+        CMU-CS 376 – Elements of Network Security
+    </p>
+</footer>
+
+
+<script>
+
+    // =====================================================
+    // API BASE URL
+    // =====================================================
+
+    const API = "/api/Signature";
+
+
+    // =====================================================
+    // 1. GENERATE RSA KEY
+    // =====================================================
+
+    async function generateKey() {
+
+        const result = document.getElementById("keyResult");
+
+        try {
+
+            const response = await fetch(
+                `${API}/generate-key`,
+                {
+                    method: "GET"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Key generation failed."
+                );
+            }
+
+            result.className = "result success";
+
+            result.innerHTML = `
+                <h3>✓ RSA Key Pair Generated Successfully</h3>
+
+                <div class="result-item">
+                    <strong>Message:</strong>
+                    ${escapeHtml(data.message || "")}
+                </div>
+
+                <div class="result-item">
+                    <strong>Public Key:</strong>
+                </div>
+
+                <div class="key-box">
+                    ${escapeHtml(data.publicKey || "")}
+                </div>
+
+                <p class="small-note">
+                    The private key is kept by the backend service
+                    and should not be shared publicly.
+                </p>
+            `;
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // 2. SIGN FILE
+    // =====================================================
+
+    async function signFile() {
+
+        const fileInput =
+            document.getElementById("signFile");
+
+        const result =
+            document.getElementById("signResult");
+
+        if (!fileInput.files.length) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please select a file.</h3>
+            `;
+
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append(
+            "file",
+            fileInput.files[0]
+        );
+
+        try {
+
+            const response = await fetch(
+                `${API}/sign-file`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message || "File signing failed."
+                );
+            }
+
+            result.className = "result success";
+
+            result.innerHTML = `
+                <h3>✓ File Signed Successfully</h3>
+
+                <div class="result-item">
+                    <strong>File:</strong>
+                    ${escapeHtml(data.fileName || "")}
+                </div>
+
+                <div class="result-item">
+                    <strong>Hash:</strong>
+                    ${escapeHtml(data.hash || "")}
+                </div>
+
+                <div class="result-item">
+                    <strong>Signature:</strong>
+                </div>
+
+                <div class="signature-box">
+                    ${escapeHtml(data.signature || "")}
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-primary"
+                    onclick="copySignature('${encodeURIComponent(data.signature || "")}')">
+                    Copy Signature
+                </button>
+
+                <p class="status">
+                    ${escapeHtml(data.message || "")}
+                </p>
+            `;
+
+            // Automatically copy signature into verification box
+            document.getElementById("signature").value =
+                data.signature || "";
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // 3. VERIFY FILE
+    // =====================================================
+
+    async function verifyFile() {
+
+        const fileInput =
+            document.getElementById("verifyFile");
+
+        const signature =
+            document.getElementById("signature").value.trim();
+
+        const result =
+            document.getElementById("verifyResult");
+
+
+        if (!fileInput.files.length) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please select a file.</h3>
+            `;
+
+            return;
+        }
+
+
+        if (!signature) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please enter the digital signature.</h3>
+            `;
+
+            return;
+        }
+
+
+        const formData = new FormData();
+
+        formData.append(
+            "file",
+            fileInput.files[0]
+        );
+
+        formData.append(
+            "signature",
+            signature
+        );
+
+
+        try {
+
+            const response = await fetch(
+                `${API}/verify-file`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            const data = await response.json();
+
+
+            if (data.isValid === true) {
+
+                result.className = "result success";
+
+                result.innerHTML = `
+                    <h3>✓ VALID</h3>
+
+                    <div class="result-item">
+                        <strong>File:</strong>
+                        ${escapeHtml(data.fileName || "")}
+                    </div>
+
+                    <div class="result-item">
+                        <strong>Hash:</strong>
+                        ${escapeHtml(data.hash || "")}
+                    </div>
+
+                    <p>
+                        ${escapeHtml(data.message || "")}
+                    </p>
+
+                    <p class="status">
+                        The document has not been modified.
+                    </p>
+                `;
+
+            } else {
+
+                result.className = "result invalid";
+
+                result.innerHTML = `
+                    <h3>✗ INVALID</h3>
+
+                    <div class="result-item">
+                        <strong>File:</strong>
+                        ${escapeHtml(data.fileName || "")}
+                    </div>
+
+                    <p>
+                        ${escapeHtml(
+                            data.message ||
+                            "Signature is incorrect or data has been modified."
+                        )}
+                    </p>
+
+                    <p class="status">
+                        Warning: The document may have been modified.
+                    </p>
+                `;
+            }
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // 4. SHA-256 HASH
+    // =====================================================
+
+    async function calculateHash() {
+
+        const data =
+            document.getElementById("hashData").value;
+
+        const result =
+            document.getElementById("hashResult");
+
+
+        if (!data.trim()) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please enter data.</h3>
+            `;
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `${API}/hash`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        data: data
+                    })
+                }
+            );
+
+
+            const responseData =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    responseData.message ||
+                    "Hash calculation failed."
+                );
+            }
+
+
+            result.className = "result success";
+
+            result.innerHTML = `
+                <h3>✓ SHA-256 Hash Generated</h3>
+
+                <div class="result-item">
+                    <strong>Algorithm:</strong>
+                    ${escapeHtml(
+                        responseData.algorithm || "SHA-256"
+                    )}
+                </div>
+
+                <div class="result-item">
+                    <strong>Hash:</strong>
+                </div>
+
+                <div class="signature-box">
+                    ${escapeHtml(responseData.hash || "")}
+                </div>
+            `;
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // 5. SIGN TEXT
+    // =====================================================
+
+    async function signText() {
+
+        const data =
+            document.getElementById("textToSign").value;
+
+        const result =
+            document.getElementById("textSignResult");
+
+
+        if (!data.trim()) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please enter text.</h3>
+            `;
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `${API}/sign`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        data: data
+                    })
+                }
+            );
+
+
+            const responseData =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    responseData.message ||
+                    "Signing failed."
+                );
+            }
+
+
+            result.className = "result success";
+
+            result.innerHTML = `
+                <h3>✓ Text Signed Successfully</h3>
+
+                <div class="result-item">
+                    <strong>Hash:</strong>
+                    ${escapeHtml(
+                        responseData.hash || ""
+                    )}
+                </div>
+
+                <div class="result-item">
+                    <strong>Signature:</strong>
+                </div>
+
+                <div class="signature-box">
+                    ${escapeHtml(
+                        responseData.signature || ""
+                    )}
+                </div>
+            `;
+
+
+            // Automatically put signature into verify box
+            document.getElementById("textSignature").value =
+                responseData.signature || "";
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // 6. VERIFY TEXT
+    // =====================================================
+
+    async function verifyText() {
+
+        const data =
+            document.getElementById("verifyText").value;
+
+        const signature =
+            document.getElementById("textSignature").value.trim();
+
+        const result =
+            document.getElementById("textVerifyResult");
+
+
+        if (!data.trim()) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please enter data.</h3>
+            `;
+
+            return;
+        }
+
+
+        if (!signature) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Please enter the signature.</h3>
+            `;
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `${API}/verify`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        data: data,
+                        signature: signature
+                    })
+                }
+            );
+
+
+            const responseData =
+                await response.json();
+
+
+            if (responseData.isValid === true) {
+
+                result.className = "result success";
+
+                result.innerHTML = `
+                    <h3>✓ VALID</h3>
+
+                    <p>
+                        ${escapeHtml(
+                            responseData.message || ""
+                        )}
+                    </p>
+
+                    <p class="status">
+                        Data integrity verified successfully.
+                    </p>
+                `;
+
+            } else {
+
+                result.className = "result invalid";
+
+                result.innerHTML = `
+                    <h3>✗ INVALID</h3>
+
+                    <p>
+                        ${escapeHtml(
+                            responseData.message ||
+                            "Signature is incorrect or data has been modified."
+                        )}
+                    </p>
+
+                    <p class="status">
+                        The data may have been modified.
+                    </p>
+                `;
+            }
+
+        } catch (error) {
+
+            result.className = "result error";
+
+            result.innerHTML = `
+                <h3>✗ Error</h3>
+                <p>${escapeHtml(error.message)}</p>
+            `;
+        }
+    }
+
+
+    // =====================================================
+    // COPY SIGNATURE
+    // =====================================================
+
+    async function copySignature(encodedSignature) {
+
+        const signature =
+            decodeURIComponent(encodedSignature);
+
+        try {
+
+            await navigator.clipboard.writeText(signature);
+
+            alert("Digital signature copied!");
+
+        } catch (error) {
+
+            alert("Unable to copy signature.");
+        }
+    }
+
+
+    // =====================================================
+    // HTML ESCAPE
+    // =====================================================
+
+    function escapeHtml(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+</script>
+
+</body>
+</html>
